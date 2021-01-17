@@ -21,6 +21,9 @@ public class TeleOpDrive extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
         // Initialize SampleMecanumDrive
         SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
+        DcMotor intake = null;
+        intake  = hardwareMap.get(DcMotor.class, "motor");
+        intake.setDirection(DcMotor.Direction.FORWARD);
 
         // We want to turn off velocity control for teleop
         // Velocity control per wheel is not necessary outside of motion profiled auto
@@ -42,6 +45,13 @@ public class TeleOpDrive extends LinearOpMode {
                             -gamepad1.right_stick_x
                     )
             );
+
+            if(gamepad1.y)
+                intake.setPower(1);
+            if(gamepad1.a)
+                intake.setPower(-1);
+            if(gamepad1.b)
+                intake.setPower(0);
 
             // Update everything. Odometry. Etc.
             drive.update();
