@@ -27,12 +27,13 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.firstinspires.ftc.robotcontroller.external.samples;
+package org.firstinspires.ftc.teamcode.drive.Denis;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
@@ -50,65 +51,73 @@ import com.qualcomm.robotcore.util.Range;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@TeleOp(name="Basic: Linear OpMode", group="Linear Opmode")
-@Disabled
-public class BasicOpMode_Linear extends LinearOpMode {
+@TeleOp(name="Test", group="Linear Opmode")
+//@Disabled
+public class test extends LinearOpMode {
 
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
-    private DcMotor leftDrive = null;
-    private DcMotor rightDrive = null;
+
+    private DcMotor leftFront = null;
+    private DcMotor leftRear = null;
+    private DcMotor rightFront = null;
+    private DcMotor rightRear = null;
+    private DcMotor intake = null;
 
     @Override
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
         telemetry.update();
 
-        // Initialize the hardware variables. Note that the strings used here as parameters
-        // to 'get' must correspond to the names assigned during the robot configuration
-        // step (using the FTC Robot Controller app on the phone).
-        leftDrive  = hardwareMap.get(DcMotor.class, "left_drive");
-        rightDrive = hardwareMap.get(DcMotor.class, "right_drive");
+        leftFront  = hardwareMap.get(DcMotor.class, "left_front_drive");
+        rightFront = hardwareMap.get(DcMotor.class, "right_front_drive");
+        leftRear  = hardwareMap.get(DcMotor.class, "left_rear_drive");
+        rightRear = hardwareMap.get(DcMotor.class, "right_rear_drive");
+        intake  = hardwareMap.get(DcMotor.class, "intake");
 
-        // Most robots need the motor on one side to be reversed to drive forward
-        // Reverse the motor that runs backwards when connected directly to the battery
-        leftDrive.setDirection(DcMotor.Direction.FORWARD);
-        rightDrive.setDirection(DcMotor.Direction.REVERSE);
+        leftRear.setDirection(DcMotor.Direction.REVERSE);
+        leftFront.setDirection(DcMotor.Direction.REVERSE);
 
-        // Wait for the game to start (driver presses PLAY)
         waitForStart();
         runtime.reset();
 
-        // run until the end of the match (driver presses STOP)
-        if (opModeIsActive()) {
+        while (opModeIsActive()) {
 
-            // Setup a variable for each drive wheel to save power level for telemetry
-            double leftPower;
-            double rightPower;
+            double rearLeftPower;
+            double rearRightPower;
+            double frontLeftPower;
+            double frontRightPower;
 
-            // Choose to drive using either Tank Mode, or POV Mode
-            // Comment out the method that's not used.  The default below is POV.
 
-            // POV Mode uses left stick to go forward, and right stick to turn.
-            // - This uses basic math to combine motions and is easier to drive straight.
-            double drive = -gamepad1.left_stick_y;
-            double turn  =  gamepad1.right_stick_x;
-            leftPower    = Range.clip(drive + turn, -1.0, 1.0) ;
-            rightPower   = Range.clip(drive - turn, -1.0, 1.0) ;
+            double drive = -gamepad1.right_stick_y;
+            double strafe  =  -gamepad1.right_stick_x;
+            double rotate = gamepad1.right_trigger - gamepad1.left_trigger;
 
-            // Tank Mode uses one stick to control each wheel.
-            // - This requires no math, but it is hard to drive forward slowly and keep straight.
-            // leftPower  = -gamepad1.left_stick_y ;
-            // rightPower = -gamepad1.right_stick_y ;
+            rearLeftPower = -strafe + drive + rotate;
+            frontLeftPower = strafe + drive + rotate;
+            rearRightPower = strafe + drive - rotate;
+            frontRightPower = -strafe + drive - rotate;
 
-            // Send calculated power to wheels
-            leftDrive.setPower(leftPower);
-            rightDrive.setPower(rightPower);
+            rearLeftPower    = Range.clip(rearLeftPower, -1.0, 1.0) ;
+            rearRightPower   = Range.clip(rearRightPower, -1.0, 1.0) ;
+            frontLeftPower    = Range.clip(frontLeftPower, -1.0, 1.0) ;
+            frontRightPower   = Range.clip(frontRightPower, -1.0, 1.0) ;
 
-            // Show the elapsed game time and wheel power.
-            telemetry.addData("Status", "Run Time: " + runtime.toString());
-            telemetry.addData("Motors", "left (%.2f), right (%.2f)", leftPower, rightPower);
-            telemetry.update();
+            if(gamepad1.right_bumper)
+            {
+                rearLeftPower *= 0.3;
+                frontLeftPower *= 0.3;
+                rearRightPower *= 0.3;
+                frontRightPower *= 0.3;
+            }
+
+            leftFront.setPower(frontLeftPower);
+            rightFront.setPower(frontRightPower);
+            leftRear.setPower(rearLeftPower);
+            rightRear.setPower(rearRightPower);
+
+            double intakePower = Range.clip(gamepad2.right_stick_y, -1.0, 1.0);
+            intake.setPower(intakePower);
         }
     }
 }
